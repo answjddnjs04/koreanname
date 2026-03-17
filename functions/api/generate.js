@@ -1,23 +1,25 @@
 export async function onRequestPost(context) {
   const { request, env } = context;
-  const apiKey = env.GEMINI_API_KEY; // Cloudflare 대시보드에서 설정할 환경 변수
+  const apiKey = env.GEMINI_API_KEY;
 
   try {
     const { traits } = await request.json();
 
     if (!apiKey) {
+      console.error("Missing GEMINI_API_KEY in environment variables.");
       throw new Error("API key not configured");
     }
 
-    const prompt = `You are an expert Korean naming master. Based on the following 10 personality traits, create a beautiful and authentic Korean name (Surname + Given name).
+    const prompt = `You are an expert Korean naming master. Based on the following 10 personality traits, create a beautiful and authentic Korean name.
 Traits: ${traits.join(', ')}
 
-Provide the response strictly in this JSON format:
+Provide the response strictly in this JSON format without any markdown code blocks:
 {
-  "koreanName": "Full name in Hangul",
-  "hanja": "Name in Hanja characters",
-  "personalitySummary": "A one-sentence personality analysis (English)",
-  "nameMeaning": "A detailed explanation of the name's meaning and why it was chosen (English)"
+  "koreanName": "Full name in Hangul (e.g., 김민준)",
+  "romanizedName": "Name in English/Romanized alphabet (e.g., Kim Min-jun)",
+  "hanja": "Name in Hanja characters (e.g., 金敏俊)",
+  "personalitySummary": "A one-sentence personality analysis in English",
+  "nameMeaning": "A detailed explanation in English of the name's meaning and why it was chosen based on the traits"
 }`;
 
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
@@ -25,24 +27,37 @@ Provide the response strictly in this JSON format:
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { response_mime_type: "application/json" }
+        generationConfig: { 
+            response_mime_type: "application/json",
+            temperature: 0.7 
+        }
       })
     });
 
+    if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Gemini API Error:", errorData);
+        throw new Error("Gemini API call failed");
+    }
+
     const data = await response.json();
-    const resultText = data.candidates[0].content.parts[0].text;
+    let resultText = data.candidates[0].content.parts[0].text;
+    
+    // AI가 가끔 넣는 마크다운 제거 보정
+    resultText = resultText.replace(/```json/g, "").replace(/```/g, "").trim();
     
     return new Response(resultText, {
       headers: { 'Content-Type': 'application/json' }
     });
 
   } catch (error) {
-    // API 호출 실패 시 가짜 데이터(Fallback) 반환
+    console.error("Server Function Error:", error);
     const fallback = {
-      "koreanName": "김서윤",
-      "hanja": "金舒潤",
-      "personalitySummary": "A warm and balanced soul who brings harmony to others.",
-      "nameMeaning": "The name signifies spreading comfort and moisture, like a gentle rain that nurtures life. We chose this based on your empathetic and strong traits."
+      "koreanName": "이서연",
+      "romanizedName": "Lee Seo-yeon",
+      "hanja": "李瑞연",
+      "personalitySummary": "A graceful soul destined for beautiful connections.",
+      "nameMeaning": "Your name signifies auspicious connections and a brilliant spirit. (This is a fallback name because the AI is currently resting. Please check your API key in Cloudflare settings!)"
     };
     return new Response(JSON.stringify(fallback), {
       headers: { 'Content-Type': 'application/json' }
