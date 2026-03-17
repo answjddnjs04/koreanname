@@ -2,7 +2,6 @@ export async function onRequest(context) {
   const { request, env } = context;
   const apiKey = env.GEMINI_API_KEY;
 
-  // GET 요청 등 잘못된 요청이 올 경우 처리
   if (request.method !== "POST") {
     return new Response("This endpoint only supports POST requests", { status: 405 });
   }
@@ -11,16 +10,16 @@ export async function onRequest(context) {
     const { traits } = await request.json();
 
     if (!apiKey) {
-      console.error("[Backend Error] GEMINI_API_KEY is undefined or missing in environment variables.");
+      console.error("[Backend Error] GEMINI_API_KEY is missing.");
       throw new Error("API key not configured");
     }
 
-    console.log("[Backend Info] Starting Gemini API call with traits:", traits);
+    console.log("[Backend Info] Calling Gemini API v1 with traits:", traits);
 
     const prompt = `You are an expert Korean naming master. Based on the following 10 personality traits, create a beautiful and authentic Korean name.
 Traits: ${traits.join(', ')}
 
-Provide the response strictly in this JSON format without any markdown code blocks:
+Provide the response strictly in this JSON format:
 {
   "koreanName": "Full name in Hangul (e.g., 김민준)",
   "romanizedName": "Name in English/Romanized alphabet (e.g., Kim Min-jun)",
@@ -29,7 +28,8 @@ Provide the response strictly in this JSON format without any markdown code bloc
   "nameMeaning": "A detailed explanation in English of the name's meaning and why it was chosen based on the traits"
 }`;
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+    // API 버전을 v1beta에서 v1으로 변경하여 호환성 확보
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -43,8 +43,8 @@ Provide the response strictly in this JSON format without any markdown code bloc
 
     if (!response.ok) {
         const errorData = await response.json();
-        console.error("[Gemini Error Detail]:", errorData);
-        throw new Error("Gemini API returned an error status");
+        console.error("[Gemini API Error Response]:", JSON.stringify(errorData));
+        throw new Error(`Gemini API returned status ${response.status}`);
     }
 
     const data = await response.json();
@@ -58,13 +58,13 @@ Provide the response strictly in this JSON format without any markdown code bloc
     });
 
   } catch (error) {
-    console.error("[General Error]:", error);
+    console.error("[Backend Exception]:", error.message);
     const fallback = {
       "koreanName": "이서연",
       "romanizedName": "Lee Seo-yeon",
       "hanja": "李瑞연",
       "personalitySummary": "A graceful soul destined for beautiful connections.",
-      "nameMeaning": "A fallback name because the AI is currently resting. Check your Cloudflare Environment Variables!"
+      "nameMeaning": "The AI service is temporarily unavailable. This is a fallback name. Error: " + error.message
     };
     return new Response(JSON.stringify(fallback), {
       headers: { 'Content-Type': 'application/json' }
