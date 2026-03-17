@@ -1,3 +1,4 @@
+// K-Soul Name Questions Database
 const questions = [
     {
         id: 1,
