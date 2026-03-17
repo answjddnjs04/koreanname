@@ -1,11 +1,21 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>K-Soul Name | 한국 이름 생성기</title>
+    <title>K-Soul Name | Find Your Authentic Korean Name</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Noto+Serif+KR:wght@700&display=swap" rel="stylesheet">
     <style>
-        /* 기본 스타일 초기화 */
+        :root {
+            --primary: #000000;
+            --accent: #3b82f6;
+            --bg: #ffffff;
+            --text-main: #111827;
+            --text-muted: #6b7280;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -13,82 +23,131 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: #f8f9fa;
-            color: #333;
+            font-family: 'Inter', -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
             display: flex;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            line-height: 1.6;
+            overflow: hidden;
+        }
+
+        /* Subtle background decoration */
+        body::before {
+            content: "";
+            position: absolute;
+            top: -10%;
+            right: -10%;
+            width: 40%;
+            height: 40%;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.05) 0%, rgba(255, 255, 255, 0) 70%);
+            z-index: -1;
         }
 
         .container {
             text-align: center;
-            max-width: 400px;
+            max-width: 480px;
             width: 90%;
-            padding: 40px 20px;
-            background: #ffffff;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            padding: 60px 20px;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .korean-title {
+            font-family: 'Noto Serif KR', serif;
+            font-size: 1.2rem;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+            letter-spacing: 0.2em;
         }
 
         h1 {
-            font-size: 2rem;
+            font-size: 2.5rem;
             font-weight: 800;
-            margin-bottom: 1rem;
-            letter-spacing: -0.02em;
-        }
-
-        h1 span {
-            color: #0070f3;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.03em;
         }
 
         p {
-            font-size: 1.1rem;
-            color: #666;
-            margin-bottom: 2.5rem;
+            font-size: 1.125rem;
+            color: var(--text-muted);
+            margin-bottom: 3rem;
+            line-height: 1.6;
             word-break: keep-all;
         }
 
         .start-button {
-            display: inline-block;
+            display: block;
             width: 100%;
-            padding: 18px;
-            background-color: #000;
+            padding: 20px;
+            background-color: var(--primary);
             color: #fff;
             text-decoration: none;
-            border-radius: 12px;
+            border-radius: 100px;
             font-weight: 600;
             font-size: 1.1rem;
-            transition: transform 0.2s, background-color 0.2s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
             border: none;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
         }
 
         .start-button:hover {
-            background-color: #222;
-            transform: translateY(-2px);
+            background-color: #333;
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .start-button:active {
+            transform: translateY(-1px);
+        }
+
+        .features {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 4rem;
+        }
+
+        .feature-item {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
         }
 
         .footer {
-            margin-top: 3rem;
-            font-size: 0.8rem;
-            color: #ccc;
+            position: absolute;
+            bottom: 30px;
+            font-size: 0.75rem;
+            color: #d1d5db;
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>K-Soul <span>Name</span></h1>
-        <p>당신의 성향을 분석하여 가장 잘 어울리는 한국식 이름을 찾아드립니다.</p>
+        <div class="korean-title">한국의 영혼</div>
+        <h1>Discover Your <br>Korean Soul Name</h1>
+        <p>Take a personality quiz to find the authentic Korean name that perfectly matches your spirit and values.</p>
         
-        <button class="start-button">테스트 시작하기</button>
+        <button class="start-button">Find My Name</button>
 
-        <div class="footer">
-            © 2026 K-Soul Name
+        <div class="features">
+            <div class="feature-item">Authentic Meaning</div>
+            <div class="feature-item">Personality Sync</div>
         </div>
+    </div>
+
+    <div class="footer">
+        © 2026 K-Soul Name. Crafted for Global Explorers.
     </div>
 
 </body>
