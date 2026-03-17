@@ -11,6 +11,7 @@
             --accent: #3b82f6;
             --bg: #ffffff;
             --text-main: #111827;
+            --text-muted: #6b7280;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -24,11 +25,10 @@
             flex-direction: column;
         }
 
-        /* Top Progress Bar */
         .progress-container {
             width: 100%;
-            height: 4px;
-            background: #eee;
+            height: 6px;
+            background: #f3f4f6;
             position: fixed;
             top: 0;
             z-index: 100;
@@ -44,76 +44,101 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            padding-top: 40px;
+            padding-top: 20px;
         }
 
-        /* Image Display Area */
-        .image-container {
-            width: 100%;
-            height: 300px;
-            background: #f3f4f6; /* Placeholder color */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            position: relative;
-        }
-        .image-container img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        /* Question Text */
         .question-box {
             padding: 40px 20px;
             text-align: center;
         }
         h2 {
-            font-size: 1.5rem;
+            font-size: 1.75rem;
             font-weight: 800;
-            letter-spacing: -0.02em;
+            letter-spacing: -0.03em;
+            line-height: 1.2;
         }
 
-        /* Balance Choice Buttons */
+        /* Balance Choice Layout */
         .choices {
             display: flex;
-            flex-direction: row; /* Desktop: side by side */
-            gap: 10px;
-            padding: 10px;
             flex: 1;
+            gap: 15px;
+            padding: 0 15px 15px 15px;
         }
 
-        .choice-btn {
+        .choice-card {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            border: 2px solid #f3f4f6;
+            border-radius: 24px;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: white;
+        }
+
+        .choice-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(59, 130, 246, 0.1);
+        }
+
+        .choice-image {
+            width: 100%;
+            height: 250px;
+            background: #f9fafb;
+            overflow: hidden;
+        }
+        .choice-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .choice-content {
+            padding: 24px;
             flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 30px 20px;
-            border: 2px solid #eee;
-            border-radius: 16px;
-            background: white;
-            font-size: 1.125rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
             text-align: center;
-            word-break: break-word;
+            font-size: 1.1rem;
+            font-weight: 600;
+            line-height: 1.4;
         }
 
-        .choice-btn:hover {
-            border-color: var(--accent);
-            background: #eff6ff;
-            transform: scale(1.02);
+        .vs-badge {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--primary);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 100px;
+            font-weight: 800;
+            font-size: 0.8rem;
+            z-index: 10;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
 
-        /* Mobile specific layout */
-        @media (max-width: 640px) {
+        .choices-wrapper {
+            position: relative;
+            flex: 1;
+            display: flex;
+        }
+
+        @media (max-width: 768px) {
             .choices {
                 flex-direction: column;
             }
-            .choice-btn {
-                padding: 40px 20px;
+            .choice-image {
+                height: 180px;
+            }
+            .vs-badge {
+                top: 50%;
+                left: 50%;
             }
         }
     </style>
@@ -125,18 +150,22 @@
     </div>
 
     <div class="container">
-        <div class="image-container" id="image-area">
-            <!-- Images will be loaded here -->
-            <p style="color: #9ca3af;">[ Scene Image ]</p>
-        </div>
-
         <div class="question-box">
-            <h2 id="question-text">Question loading...</h2>
+            <h2 id="question-text">Loading question...</h2>
         </div>
 
-        <div class="choices">
-            <button class="choice-btn" id="btn-a" onclick="handleChoice('A')">Option A</button>
-            <button class="choice-btn" id="btn-b" onclick="handleChoice('B')">Option B</button>
+        <div class="choices-wrapper">
+            <div class="vs-badge">VS</div>
+            <div class="choices">
+                <div class="choice-card" onclick="handleChoice('A')">
+                    <div class="choice-image" id="img-a"></div>
+                    <div class="choice-content" id="text-a">Option A</div>
+                </div>
+                <div class="choice-card" onclick="handleChoice('B')">
+                    <div class="choice-image" id="img-b"></div>
+                    <div class="choice-content" id="text-b">Option B</div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -151,16 +180,20 @@
             
             document.getElementById('progress-bar').style.width = `${progress}%`;
             document.getElementById('question-text').innerText = q.question;
-            document.getElementById('btn-a').innerText = q.optionA;
-            document.getElementById('btn-b').innerText = q.optionB;
             
-            // Image handling (if exists)
-            const imgArea = document.getElementById('image-area');
-            if (q.image) {
-                imgArea.innerHTML = `<img src="${q.image}" alt="quiz-scene">`;
-            } else {
-                imgArea.innerHTML = `<p style="color: #9ca3af;">[ No Image ]</p>`;
-            }
+            document.getElementById('text-a').innerText = q.optionA;
+            document.getElementById('text-b').innerText = q.optionB;
+            
+            document.getElementById('img-a').innerHTML = `<img src="${q.imageA}" alt="Option A">`;
+            document.getElementById('img-b').innerHTML = `<img src="${q.imageB}" alt="Option B">`;
+            
+            // Animation reset
+            const container = document.querySelector('.choices-wrapper');
+            container.style.opacity = 0;
+            setTimeout(() => {
+                container.style.transition = 'opacity 0.5s ease';
+                container.style.opacity = 1;
+            }, 50);
         }
 
         function handleChoice(choice) {
@@ -169,12 +202,11 @@
                 currentIndex++;
                 updateUI();
             } else {
-                alert("Quiz Finished! Results logic coming soon.");
-                // Redirect to result page later
+                alert("Quiz Finished! Analyzing your Korean Soul Name...");
+                // Next: Redirect to result page
             }
         }
 
-        // Initialize
         updateUI();
     </script>
 </body>
