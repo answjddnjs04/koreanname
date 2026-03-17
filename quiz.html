@@ -11,7 +11,6 @@
             --accent: #3b82f6;
             --bg: #ffffff;
             --text-main: #111827;
-            --text-muted: #6b7280;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -23,7 +22,7 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            overflow: hidden; /* Prevent scrolling during transition */
+            overflow: hidden;
         }
 
         .progress-container {
@@ -60,7 +59,6 @@
             color: #374151;
         }
 
-        /* Balance Choice Layout */
         .choices-wrapper {
             position: relative;
             flex: 1;
@@ -88,10 +86,9 @@
             box-shadow: 0 25px 50px rgba(59, 130, 246, 0.15);
         }
 
-        /* Increased image area */
         .choice-image {
             width: 100%;
-            flex: 3.5; /* Larger ratio for images */
+            flex: 3.5;
             background: #f9fafb;
             overflow: hidden;
         }
@@ -101,9 +98,8 @@
             object-fit: cover;
         }
 
-        /* Smaller content area */
         .choice-content {
-            flex: 1; /* Smaller ratio for text */
+            flex: 1;
             padding: 20px;
             display: flex;
             align-items: center;
@@ -136,6 +132,24 @@
             border: 4px solid var(--bg);
         }
 
+        /* Result View inside Quiz (Temporary) */
+        #loading-view {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            padding: 40px;
+            text-align: center;
+        }
+        .trait-list {
+            margin-top: 20px;
+            font-size: 1.1rem;
+            color: var(--accent);
+            font-weight: 600;
+            line-height: 1.8;
+        }
+
         @media (max-width: 768px) {
             body { overflow-y: auto; }
             .container { height: auto; }
@@ -146,9 +160,6 @@
             .choice-card {
                 flex: none;
                 height: 350px;
-            }
-            .choice-image {
-                flex: 2.5;
             }
             .vs-badge {
                 top: 50%;
@@ -162,7 +173,7 @@
         <div id="progress-bar"></div>
     </div>
 
-    <div class="container">
+    <div class="container" id="quiz-view">
         <div class="question-box">
             <h2 id="question-text">Loading question...</h2>
         </div>
@@ -180,10 +191,17 @@
         </div>
     </div>
 
+    <div id="loading-view">
+        <h1>Analyzing Your Soul...</h1>
+        <p>Based on your choices:</p>
+        <div class="trait-list" id="final-traits"></div>
+        <p style="margin-top: 40px; color: #9ca3af;">Calling Gemini AI to craft your Korean name...</p>
+    </div>
+
     <script src="questions.js"></script>
     <script>
         let currentIndex = 0;
-        let answers = [];
+        let selectedTraits = [];
 
         function updateUI() {
             const q = questions[currentIndex];
@@ -198,7 +216,6 @@
             document.getElementById('img-a').innerHTML = `<img src="${q.imageA}" alt="Option A">`;
             document.getElementById('img-b').innerHTML = `<img src="${q.imageB}" alt="Option B">`;
             
-            // Subtle transition effect
             const cards = document.querySelectorAll('.choice-card');
             cards.forEach(card => {
                 card.style.opacity = 0;
@@ -212,14 +229,31 @@
         }
 
         function handleChoice(choice) {
-            answers.push(choice);
+            const q = questions[currentIndex];
+            const trait = (choice === 'A') ? q.traitA : q.traitB;
+            selectedTraits.push(trait);
+
             if (currentIndex < questions.length - 1) {
                 currentIndex++;
                 updateUI();
             } else {
-                alert("Quiz Finished! Analyzing your Korean Soul Name...");
-                // Result page logic will go here
+                showLoading();
             }
+        }
+
+        function showLoading() {
+            document.getElementById('quiz-view').style.display = 'none';
+            document.getElementById('loading-view').style.display = 'flex';
+            document.getElementById('final-traits').innerText = selectedTraits.join("\n");
+            
+            // In the next step, we will call Gemini API here
+            // For now, we just list the traits as requested
+            setTimeout(() => {
+                // Redirect to result page with traits as URL params
+                const params = new URLSearchParams();
+                params.set('traits', selectedTraits.join('|'));
+                window.location.href = 'result.html?' + params.toString();
+            }, 3000);
         }
 
         updateUI();
