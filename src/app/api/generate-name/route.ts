@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+export const runtime = "edge";
+
 // Mock data for names
 const MOCK_NAMES = [
   { koreanName: "김민준", hanja: "金敏俊", meaning: "민첩하고 뛰어난 재능을 가진 사람", personality: "당신은 빠르고 정확한 판단력을 가지고 있으며, 어떤 상황에서도 유연하게 대처하는 능력이 뛰어납니다." },
