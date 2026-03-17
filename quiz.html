@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>K-Soul Name | Quiz Time</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #000000;
+            --accent: #3b82f6;
+            --bg: #ffffff;
+            --text-main: #111827;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Progress Bar */
+        .progress-container {
+            width: 100%;
+            height: 4px;
+            background: #eee;
+            position: fixed;
+            top: 0;
+            z-index: 100;
+        }
+        #progress-bar {
+            width: 0%;
+            height: 100%;
+            background: var(--accent);
+            transition: width 0.3s ease;
+        }
+
+        .container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding-top: 40px;
+        }
+
+        /* Image Display Area */
+        .image-container {
+            width: 100%;
+            height: 300px;
+            background: #f3f4f6; /* Placeholder color */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+        .image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Question Text */
+        .question-box {
+            padding: 40px 20px;
+            text-align: center;
+        }
+        h2 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        /* Balance Choice Buttons */
+        .choices {
+            display: flex;
+            flex-direction: row; /* Desktop: side by side */
+            gap: 10px;
+            padding: 10px;
+            flex: 1;
+        }
+
+        .choice-btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 30px 20px;
+            border: 2px solid #eee;
+            border-radius: 16px;
+            background: white;
+            font-size: 1.125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            word-break: break-word;
+        }
+
+        .choice-btn:hover {
+            border-color: var(--accent);
+            background: #eff6ff;
+            transform: scale(1.02);
+        }
+
+        /* Mobile specific layout */
+        @media (max-width: 640px) {
+            .choices {
+                flex-direction: column;
+            }
+            .choice-btn {
+                padding: 40px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="progress-container">
+        <div id="progress-bar"></div>
+    </div>
+
+    <div class="container">
+        <div class="image-container" id="image-area">
+            <!-- Images will be loaded here -->
+            <p style="color: #9ca3af;">[ Scene Image ]</p>
+        </div>
+
+        <div class="question-box">
+            <h2 id="question-text">Question loading...</h2>
+        </div>
+
+        <div class="choices">
+            <button class="choice-btn" id="btn-a" onclick="handleChoice('A')">Option A</button>
+            <button class="choice-btn" id="btn-b" onclick="handleChoice('B')">Option B</button>
+        </div>
+    </div>
+
+    <script src="questions.js"></script>
+    <script>
+        let currentIndex = 0;
+        let answers = [];
+
+        function updateUI() {
+            const q = questions[currentIndex];
+            const progress = ((currentIndex + 1) / questions.length) * 100;
+            
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+            document.getElementById('question-text').innerText = q.question;
+            document.getElementById('btn-a').innerText = q.optionA;
+            document.getElementById('btn-b').innerText = q.optionB;
+            
+            // Image handling (if exists)
+            const imgArea = document.getElementById('image-area');
+            if (q.image) {
+                imgArea.innerHTML = `<img src="${q.image}" alt="quiz-scene">`;
+            } else {
+                imgArea.innerHTML = `<p style="color: #9ca3af;">[ No Image ]</p>`;
+            }
+        }
+
+        function handleChoice(choice) {
+            answers.push(choice);
+            if (currentIndex < questions.length - 1) {
+                currentIndex++;
+                updateUI();
+            } else {
+                alert("Quiz Finished! Results logic coming soon.");
+                // Redirect to result page later
+            }
+        }
+
+        // Initialize
+        updateUI();
+    </script>
+</body>
+</html>
