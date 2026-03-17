@@ -1,43 +1,29 @@
-import { ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
   return (
-    <main className="flex flex-col items-center justify-center min-h-screen p-4">
-      {/* 60% Background: body/main (Primary) */}
-      
-      <div className="max-w-md w-full space-y-8 text-center">
-        {/* 30% Secondary: Card structure */}
-        <div className="card-container space-y-6">
-          <div className="space-y-2">
-            <h1 className="text-4xl font-extrabold tracking-tight text-white">
-              K-Soul Name
-            </h1>
-            <p className="text-slate-400">
-              당신의 성향과 영혼을 담은 <br />
-              단 하나의 한국 이름을 찾아드립니다.
-            </p>
-          </div>
-
-          <div className="py-4 border-y border-slate-700/50">
-            <p className="text-sm text-slate-300">
-              12가지 질문 | 이미지 없이 텍스트 중심 | AI 기반 분석
-            </p>
-          </div>
-
-          {/* 10% Accent: Call to Action button */}
-          <div className="pt-2">
-            <Link href="/quiz" className="btn-accent inline-flex items-center gap-2">
-              이름 찾기 시작
-              <ArrowRight className="w-5 h-5" />
-            </Link>
-          </div>
-        </div>
-
-        <p className="text-xs text-slate-500">
-          © 2026 K-Soul Name. All rights reserved.
+    <div className="flex flex-col items-center justify-center h-full p-8 text-center space-y-8 animate-in fade-in zoom-in duration-500">
+      <div className="space-y-4">
+        <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 tracking-tight leading-tight">
+          나에게 어울리는<br />
+          <span className="text-blue-600">한국 이름</span>은?
+        </h1>
+        <p className="text-lg text-gray-600 max-w-sm mx-auto break-keep">
+          12가지 질문을 통해 당신의 성향을 분석하고,
+          가장 잘 어울리는 한국 이름과 의미를 찾아드립니다.
         </p>
       </div>
-    </main>
+
+      <Link href="/quiz">
+        <Button className="w-full max-w-xs text-lg py-6 rounded-full shadow-lg hover:shadow-xl transition-all hover:-translate-y-1">
+          테스트 시작하기
+        </Button>
+      </Link>
+      
+      <div className="absolute bottom-8 text-xs text-gray-400">
+        © 2026 K-Soul Name. All rights reserved.
+      </div>
+    </div>
   );
 }

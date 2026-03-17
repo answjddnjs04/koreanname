@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "K-Soul Name | 당신의 한국 이름을 찾아보세요",
-  description: "12가지 질문을 통해 당신에게 가장 어울리는 한국 이름을 선물합니다.",
+  title: "K-Soul Name - 한국 이름 생성기",
+  description: "당신의 성향에 꼭 맞는 한국 이름을 찾아보세요.",
 };
 
 export default function RootLayout({
@@ -13,8 +13,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko">
-      <body className="bg-primary text-primary-foreground min-h-screen antialiased selection:bg-accent selection:text-white">
-        {children}
+      <body className="antialiased min-h-screen bg-gray-50 flex flex-col items-center justify-center">
+        <main className="w-full max-w-md bg-white min-h-screen sm:min-h-[800px] shadow-lg sm:rounded-xl overflow-hidden relative flex flex-col">
+          {children}
+        </main>
       </body>
     </html>
   );
