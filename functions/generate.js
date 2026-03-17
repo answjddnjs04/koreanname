@@ -3,20 +3,37 @@ export async function onRequest(context) {
   const apiKey = env.GEMINI_API_KEY;
 
   if (request.method !== "POST") {
-    return new Response("This endpoint only supports POST requests", { status: 405 });
+    return new Response("Only POST supported", { status: 405 });
   }
 
   try {
     const { traits } = await request.json();
 
     if (!apiKey) {
-      console.error("[Backend Error] GEMINI_API_KEY is missing.");
-      throw new Error("API key not configured");
+      throw new Error("GEMINI_API_KEY is missing in Cloudflare Environment Variables.");
     }
 
-    console.log("[Backend Info] Calling Gemini API v1beta with traits:", traits);
+    // 사용자 리스트 기반 최신 모델 우선순위
+    const models = [
+      "gemini-2.5-flash", 
+      "gemini-3.1-flash-lite", 
+      "gemini-3-flash",
+      "gemini-1.5-flash"
+    ];
 
-    const prompt = `You are an expert Korean naming master. Based on the following 10 personality traits, create a beautiful and authentic Korean name.
+    let lastError = null;
+
+    for (const modelName of models) {
+      try {
+        console.log(`[Backend] Trying latest model: ${modelName}`);
+        
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ 
+              parts: [{ 
+                text: `You are an expert Korean naming master. Based on the following 10 personality traits, create a beautiful and authentic Korean name.
 Traits: ${traits.join(', ')}
 
 Provide the response strictly in this JSON format:
@@ -25,53 +42,44 @@ Provide the response strictly in this JSON format:
   "romanizedName": "Name in English/Romanized alphabet (e.g., Kim Min-jun)",
   "hanja": "Name in Hanja characters (e.g., 金敏俊)",
   "personalitySummary": "A one-sentence personality analysis in English",
-  "nameMeaning": "A detailed explanation in English of the name's meaning and why it was chosen based on the traits"
-}`;
+  "nameMeaning": "A detailed explanation in English of why this name was chosen based on the traits"
+}` 
+              }] 
+            }],
+            generationConfig: { 
+              temperature: 0.7,
+              responseMimeType: "application/json"
+            }
+          })
+        });
 
-    // v1beta가 모델 호환성이 가장 높습니다.
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { 
-            temperature: 0.7,
-            maxOutputTokens: 1000
-            // response_mime_type을 제거하여 400 에러 방지
+        if (response.ok) {
+          const data = await response.json();
+          const resultText = data.candidates[0].content.parts[0].text;
+          console.log(`[Backend] Success with ${modelName}`);
+          return new Response(resultText, { headers: { 'Content-Type': 'application/json' } });
+        } else {
+          const errorData = await response.json();
+          lastError = `Model ${modelName} error: ${errorData.error.message}`;
+          console.warn(`[Backend] ${lastError}`);
         }
-      })
-    });
-
-    if (!response.ok) {
-        const errorData = await response.json();
-        console.error("[Gemini API Error Detail]:", JSON.stringify(errorData));
-        throw new Error(`Gemini API returned status ${response.status}`);
+      } catch (e) {
+        lastError = `Fetch error with ${modelName}: ${e.message}`;
+        console.warn(`[Backend] ${lastError}`);
+      }
     }
 
-    const data = await response.json();
-    let resultText = data.candidates[0].content.parts[0].text;
-    
-    // AI의 응답에서 JSON 블록만 추출하는 로직 유지
-    const jsonMatch = resultText.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-        resultText = jsonMatch[0];
-    }
-    
-    return new Response(resultText, {
-      headers: { 'Content-Type': 'application/json' }
-    });
+    throw new Error("All provided models failed. " + lastError);
 
   } catch (error) {
-    console.error("[Backend Exception]:", error.message);
+    console.error("[Fatal Error]:", error.message);
     const fallback = {
-      "koreanName": "박지민",
-      "romanizedName": "Park Ji-min",
-      "hanja": "朴智敏",
-      "personalitySummary": "A brilliant and agile soul with deep wisdom.",
-      "nameMeaning": "Your name represents wisdom and quick-wittedness. (AI connection is still stabilizing... Error: " + error.message + ")"
+      "koreanName": "강한별",
+      "romanizedName": "Kang Han-byeol",
+      "hanja": "姜한별",
+      "personalitySummary": "A sturdy and bright soul shining like a grand star.",
+      "nameMeaning": "Your traits suggest a person of strong will and bright presence. (Note: AI models are currently initializing. Error: " + error.message + ")"
     };
-    return new Response(JSON.stringify(fallback), {
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return new Response(JSON.stringify(fallback), { headers: { 'Content-Type': 'application/json' } });
   }
 }
