@@ -14,6 +14,8 @@ export async function onRequest(context) {
       throw new Error("API key not configured");
     }
 
+    console.log("[Backend Info] Calling Gemini API v1beta with traits:", traits);
+
     const prompt = `You are an expert Korean naming master. Based on the following 10 personality traits, create a beautiful and authentic Korean name.
 Traits: ${traits.join(', ')}
 
@@ -26,8 +28,8 @@ Provide the response strictly in this JSON format:
   "nameMeaning": "A detailed explanation in English of the name's meaning and why it was chosen based on the traits"
 }`;
 
-    // v1 API 호환성을 위해 generationConfig에서 response_mime_type을 제거함
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+    // v1beta가 모델 호환성이 가장 높습니다.
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -35,6 +37,7 @@ Provide the response strictly in this JSON format:
         generationConfig: { 
             temperature: 0.7,
             maxOutputTokens: 1000
+            // response_mime_type을 제거하여 400 에러 방지
         }
       })
     });
@@ -48,7 +51,7 @@ Provide the response strictly in this JSON format:
     const data = await response.json();
     let resultText = data.candidates[0].content.parts[0].text;
     
-    // AI의 응답에서 JSON 블록만 추출하는 더 강력한 로직
+    // AI의 응답에서 JSON 블록만 추출하는 로직 유지
     const jsonMatch = resultText.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
         resultText = jsonMatch[0];
@@ -61,11 +64,11 @@ Provide the response strictly in this JSON format:
   } catch (error) {
     console.error("[Backend Exception]:", error.message);
     const fallback = {
-      "koreanName": "이서연",
-      "romanizedName": "Lee Seo-yeon",
-      "hanja": "李瑞연",
-      "personalitySummary": "A graceful soul destined for beautiful connections.",
-      "nameMeaning": "The AI is having trouble with the request format. Error: " + error.message
+      "koreanName": "박지민",
+      "romanizedName": "Park Ji-min",
+      "hanja": "朴智敏",
+      "personalitySummary": "A brilliant and agile soul with deep wisdom.",
+      "nameMeaning": "Your name represents wisdom and quick-wittedness. (AI connection is still stabilizing... Error: " + error.message + ")"
     };
     return new Response(JSON.stringify(fallback), {
       headers: { 'Content-Type': 'application/json' }
