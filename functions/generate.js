@@ -1,14 +1,21 @@
-export async function onRequestPost(context) {
+export async function onRequest(context) {
   const { request, env } = context;
   const apiKey = env.GEMINI_API_KEY;
+
+  // GET 요청 등 잘못된 요청이 올 경우 처리
+  if (request.method !== "POST") {
+    return new Response("This endpoint only supports POST requests", { status: 405 });
+  }
 
   try {
     const { traits } = await request.json();
 
     if (!apiKey) {
-      console.error("Missing GEMINI_API_KEY in environment variables.");
+      console.error("[Backend Error] GEMINI_API_KEY is undefined or missing in environment variables.");
       throw new Error("API key not configured");
     }
+
+    console.log("[Backend Info] Starting Gemini API call with traits:", traits);
 
     const prompt = `You are an expert Korean naming master. Based on the following 10 personality traits, create a beautiful and authentic Korean name.
 Traits: ${traits.join(', ')}
@@ -36,14 +43,14 @@ Provide the response strictly in this JSON format without any markdown code bloc
 
     if (!response.ok) {
         const errorData = await response.json();
-        console.error("Gemini API Error:", errorData);
-        throw new Error("Gemini API call failed");
+        console.error("[Gemini Error Detail]:", errorData);
+        throw new Error("Gemini API returned an error status");
     }
 
     const data = await response.json();
     let resultText = data.candidates[0].content.parts[0].text;
     
-    // AI가 가끔 넣는 마크다운 제거 보정
+    // AI가 마크다운을 붙여서 응답할 경우 보정
     resultText = resultText.replace(/```json/g, "").replace(/```/g, "").trim();
     
     return new Response(resultText, {
@@ -51,13 +58,13 @@ Provide the response strictly in this JSON format without any markdown code bloc
     });
 
   } catch (error) {
-    console.error("Server Function Error:", error);
+    console.error("[General Error]:", error);
     const fallback = {
       "koreanName": "이서연",
       "romanizedName": "Lee Seo-yeon",
       "hanja": "李瑞연",
       "personalitySummary": "A graceful soul destined for beautiful connections.",
-      "nameMeaning": "Your name signifies auspicious connections and a brilliant spirit. (This is a fallback name because the AI is currently resting. Please check your API key in Cloudflare settings!)"
+      "nameMeaning": "A fallback name because the AI is currently resting. Check your Cloudflare Environment Variables!"
     };
     return new Response(JSON.stringify(fallback), {
       headers: { 'Content-Type': 'application/json' }
