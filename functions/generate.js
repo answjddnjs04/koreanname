@@ -14,8 +14,6 @@ export async function onRequest(context) {
       throw new Error("API key not configured");
     }
 
-    console.log("[Backend Info] Calling Gemini API v1 with traits:", traits);
-
     const prompt = `You are an expert Korean naming master. Based on the following 10 personality traits, create a beautiful and authentic Korean name.
 Traits: ${traits.join(', ')}
 
@@ -28,30 +26,33 @@ Provide the response strictly in this JSON format:
   "nameMeaning": "A detailed explanation in English of the name's meaning and why it was chosen based on the traits"
 }`;
 
-    // API 버전을 v1beta에서 v1으로 변경하여 호환성 확보
+    // v1 API 호환성을 위해 generationConfig에서 response_mime_type을 제거함
     const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: { 
-            response_mime_type: "application/json",
-            temperature: 0.7 
+            temperature: 0.7,
+            maxOutputTokens: 1000
         }
       })
     });
 
     if (!response.ok) {
         const errorData = await response.json();
-        console.error("[Gemini API Error Response]:", JSON.stringify(errorData));
+        console.error("[Gemini API Error Detail]:", JSON.stringify(errorData));
         throw new Error(`Gemini API returned status ${response.status}`);
     }
 
     const data = await response.json();
     let resultText = data.candidates[0].content.parts[0].text;
     
-    // AI가 마크다운을 붙여서 응답할 경우 보정
-    resultText = resultText.replace(/```json/g, "").replace(/```/g, "").trim();
+    // AI의 응답에서 JSON 블록만 추출하는 더 강력한 로직
+    const jsonMatch = resultText.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+        resultText = jsonMatch[0];
+    }
     
     return new Response(resultText, {
       headers: { 'Content-Type': 'application/json' }
@@ -64,7 +65,7 @@ Provide the response strictly in this JSON format:
       "romanizedName": "Lee Seo-yeon",
       "hanja": "李瑞연",
       "personalitySummary": "A graceful soul destined for beautiful connections.",
-      "nameMeaning": "The AI service is temporarily unavailable. This is a fallback name. Error: " + error.message
+      "nameMeaning": "The AI is having trouble with the request format. Error: " + error.message
     };
     return new Response(JSON.stringify(fallback), {
       headers: { 'Content-Type': 'application/json' }
